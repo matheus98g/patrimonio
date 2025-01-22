@@ -1,0 +1,29 @@
+.input-transparente {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+.input-transparente:focus {
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+body {
+    background-image: url('../assets/images/background-login.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    height: 100vh;
+    color: white;
+}
+
+.form-container {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
