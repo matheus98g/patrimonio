@@ -7,45 +7,45 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form>
+                    <form id="formAtivo">
                         <div class="mb-1">
                             <label for="descricao" class="col-form-label">Descrição:</label>
-                            <input type="text" class="form-control" id="descricao">
+                            <input type="text" class="form-control" id="descricao" name="descricao">
                         </div>
                         <div class="mb-1">
                             <label for="marca" class="col-form-label">Marca:</label>
-                            <select class="form-select" id="marca">
+                            <select class="form-select" id="marca" name="marca">
                                 <option value="">Selecione...</option>
                                 <?php
                                 foreach ($marcas as $marca) {
                                     echo '<option value="' . $marca['idMarca'] . '">' . $marca['descricaoMarca'] . '</option>';
-                                };
+                                }
                                 ?>
                             </select>
                         </div>
                         <div class="mb-1">
                             <label for="tipo" class="col-form-label">Tipo:</label>
-                            <select class="form-select" id="tipo">
+                            <select class="form-select" id="tipo" name="tipo">
                                 <option value="">Selecione...</option>
                                 <?php
                                 foreach ($tipos as $tipo) {
                                     echo '<option value="' . $tipo['idTipo'] . '">' . $tipo['descricaoTipo'] . '</option>';
-                                };
+                                }
                                 ?>
                             </select>
                         </div>
                         <div class="mb-1">
                             <label for="quantidade" class="col-form-label">Quantidade:</label>
-                            <input type="number" class="form-control" id="quantidade">
+                            <input type="number" class="form-control" id="quantidade" name="quantidade">
                         </div>
                         <div class="mb-1">
                             <label for="obs" class="col-form-label">Observação:</label>
-                            <input type="text" class="form-control" id="obs">
+                            <input type="text" class="form-control" id="obs" name="obs">
                         </div>
                         <div class="modal-footer p-2">
                             <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
                             <button type="reset" class="btn btn-secondary">Limpar</button>
-                            <button type="submit" class="btn btn-primary" id="cadastrar_ativo">Cadastrar</button>
+                            <button type="button" class="btn btn-primary" id="cadastrar_ativo">Cadastrar</button>
                         </div>
                     </form>
                 </div>

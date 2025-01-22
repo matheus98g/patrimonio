@@ -12,201 +12,154 @@ class Ativo
         $this->db = $db;
     }
 
-    public function cadastrarAtivo()
+    public function cadastrarAtivo($data)
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Validação de dados
-            $ativo = trim($_POST['ativo'] ?? '');
-            $marca = intval($_POST['marca'] ?? 0);
-            $tipo = intval($_POST['tipo'] ?? 0);
-            $quantidade = intval($_POST['quantidade'] ?? 0);
-            $observacao = trim($_POST['observacao'] ?? '');
-            $userId = $_SESSION['id_user'] ?? null;
+        // Validação de dados
+        $ativo = trim($data['ativo'] ?? '');
+        $marca = intval($data['marca'] ?? 0);
+        $tipo = intval($data['tipo'] ?? 0);
+        $quantidade = intval($data['quantidade'] ?? 0);
+        $observacao = trim($data['observacao'] ?? '');
+        $userId = $_SESSION['id_user'] ?? null;
 
-            if (empty($ativo) || $marca <= 0 || $tipo <= 0 || $quantidade <= 0 || !$userId) {
-                echo "Dados inválidos. Por favor, preencha todos os campos corretamente.";
-                return false;
-            }
+        if (empty($ativo) || $marca <= 0 || $tipo <= 0 || $quantidade <= 0 || !$userId) {
+            return ['success' => false, 'message' => 'Dados inválidos. Por favor, preencha todos os campos corretamente.'];
+        }
 
+        try {
             // Query preparada para evitar SQL Injection
             $query = "INSERT INTO ativo (descricaoAtivo, qtdAtivo, obsAtivo, idMarca, idTipo, dataCadastro, idUsuario)
-                      VALUES (?, ?, ?, ?, ?, NOW(), ?)";
+                      VALUES (:ativo, :quantidade, :observacao, :marca, :tipo, NOW(), :userId)";
 
             $stmt = $this->db->prepare($query);
 
-            if (!$stmt) {
-                echo "Erro ao preparar a consulta: " . $this->db->error;
-                return false;
-            }
+            // Bind dos parâmetros
+            $stmt->bindParam(':ativo', $ativo, PDO::PARAM_STR);
+            $stmt->bindParam(':quantidade', $quantidade, PDO::PARAM_INT);
+            $stmt->bindParam(':observacao', $observacao, PDO::PARAM_STR);
+            $stmt->bindParam(':marca', $marca, PDO::PARAM_INT);
+            $stmt->bindParam(':tipo', $tipo, PDO::PARAM_INT);
+            $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
 
-            $stmt->bind_param('sisiii', $ativo, $quantidade, $observacao, $marca, $tipo, $userId);
-
+            // Executa a query
             if ($stmt->execute()) {
-                echo "Ativo cadastrado com sucesso!";
-                return true;
+                return ['success' => true, 'message' => 'Ativo cadastrado com sucesso!'];
             } else {
-                echo "Erro ao cadastrar ativo: " . $stmt->error;
-                return false;
+                return ['success' => false, 'message' => 'Erro ao cadastrar ativo.'];
             }
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => 'Erro: ' . $e->getMessage()];
         }
     }
-    public function editarAtivo()
+
+    public function editarAtivo($data)
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Validação de dados
-            $id = intval($_POST['idAtivo'] ?? 0);
-            $descricao = trim($_POST['descricaoAtivo'] ?? '');
-            $quantidade = intval($_POST['qtdAtivo'] ?? 0);
-            $observacao = trim($_POST['obsAtivo'] ?? '');
-            $marca = intval($_POST['marca'] ?? 0);
-            $tipo = intval($_POST['tipo'] ?? 0);
+        // Validação de dados
+        $id = intval($data['idAtivo'] ?? 0);
+        $descricao = trim($data['descricaoAtivo'] ?? '');
+        $quantidade = intval($data['qtdAtivo'] ?? 0);
+        $observacao = trim($data['obsAtivo'] ?? '');
+        $marca = intval($data['marca'] ?? 0);
+        $tipo = intval($data['tipo'] ?? 0);
 
-            if ($id <= 0 || empty($descricao) || $quantidade <= 0 || empty($observacao) || $marca <= 0 || $tipo <= 0) {
-                echo "Dados inválidos. Por favor, preencha todos os campos.";
-                return false;
-            }
+        if ($id <= 0 || empty($descricao) || $quantidade <= 0 || empty($observacao) || $marca <= 0 || $tipo <= 0) {
+            return ['success' => false, 'message' => 'Dados inválidos. Por favor, preencha todos os campos.'];
+        }
 
+        try {
             // Query preparada para atualizar os dados
             $query = "UPDATE ativo 
-                      SET descricaoAtivo = ?, qtdAtivo = ?, obsAtivo = ?, idMarca = ?, idTipo = ? 
-                      WHERE idAtivo = ?";
+                      SET descricaoAtivo = :descricao, qtdAtivo = :quantidade, obsAtivo = :observacao, 
+                          idMarca = :marca, idTipo = :tipo 
+                      WHERE idAtivo = :id";
 
             $stmt = $this->db->prepare($query);
 
-            if (!$stmt) {
-                echo "Erro ao preparar a consulta: " . $this->db->error;
-                return false;
-            }
-
-            $stmt->bind_param('sisiii', $descricao, $quantidade, $observacao, $marca, $tipo, $id);
+            $stmt->bindParam(':descricao', $descricao, PDO::PARAM_STR);
+            $stmt->bindParam(':quantidade', $quantidade, PDO::PARAM_INT);
+            $stmt->bindParam(':observacao', $observacao, PDO::PARAM_STR);
+            $stmt->bindParam(':marca', $marca, PDO::PARAM_INT);
+            $stmt->bindParam(':tipo', $tipo, PDO::PARAM_INT);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
 
             if ($stmt->execute()) {
-                echo "Ativo atualizado com sucesso!";
-                return true;
+                return ['success' => true, 'message' => 'Ativo atualizado com sucesso!'];
             } else {
-                echo "Erro ao atualizar ativo: " . $stmt->error;
-                return false;
+                return ['success' => false, 'message' => 'Erro ao atualizar ativo.'];
             }
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => 'Erro: ' . $e->getMessage()];
         }
     }
 
-    function atualizarStatusAtivo($db, $idAtivo, $statusAtivo)
+    public function atualizarStatusAtivo($data)
     {
-        // Validação dos parâmetros
+        $idAtivo = intval($data['idAtivo'] ?? 0);
+        $statusAtivo = intval($data['statusAtivo'] ?? null);
+
         if (!$idAtivo || !isset($statusAtivo)) {
             return ['success' => false, 'message' => 'Parâmetros inválidos.'];
         }
 
-        // Query para atualização do status
-        $sql = "UPDATE ativo SET statusAtivo = ?, dataAlteracao = NOW() WHERE idAtivo = ?";
-        $stmt = $db->prepare($sql);
-        $stmt->bind_param("ii", $statusAtivo, $idAtivo);
+        try {
+            $query = "UPDATE ativo SET statusAtivo = :statusAtivo, dataAlteracao = NOW() WHERE idAtivo = :idAtivo";
+            $stmt = $this->db->prepare($query);
 
-        // Execução e retorno do resultado
-        if ($stmt->execute()) {
-            return ['success' => true, 'message' => 'Status atualizado com sucesso.'];
-        } else {
-            return ['success' => false, 'message' => 'Erro ao atualizar o status.'];
+            $stmt->bindParam(':statusAtivo', $statusAtivo, PDO::PARAM_INT);
+            $stmt->bindParam(':idAtivo', $idAtivo, PDO::PARAM_INT);
+
+            if ($stmt->execute()) {
+                return ['success' => true, 'message' => 'Status atualizado com sucesso.'];
+            } else {
+                return ['success' => false, 'message' => 'Erro ao atualizar o status.'];
+            }
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => 'Erro: ' . $e->getMessage()];
         }
     }
 
-    // // Uso da função dentro do contexto POST
-    // if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    //     $idAtivo = intval($_POST['idAtivo']);
-    //     $statusAtivo = intval($_POST['statusAtivo']);
-
-    //     // Chamada da função
-    //     $response = atualizarStatusAtivo($db, $idAtivo, $statusAtivo);
-
-    //     // Retorno em formato JSON
-    //     echo json_encode($response);
-
-
-
-    public function cadastrarMarca($marca, $userId)
+    public function cadastrarMarca($data)
     {
-        // Valida a descrição da marca e o ID do usuário
+        $marca = trim($data['marca'] ?? '');
+        $userId = $_SESSION['id_user'] ?? null;
+
         if (empty($marca) || !$userId) {
             return ['success' => false, 'message' => 'Dados inválidos.'];
         }
 
-        // Prepara a consulta SQL
-        $query = "INSERT INTO marca (descricaoMarca, statusMarca, idUsuario) VALUES (:marca, 'S', :userId)";
-        $stmt = $this->db->prepare($query); // Usa o método prepare do PDO
+        try {
+            $query = "INSERT INTO marca (descricaoMarca, statusMarca, idUsuario) VALUES (:marca, 'S', :userId)";
+            $stmt = $this->db->prepare($query);
 
-        if (!$stmt) {
-            return ['success' => false, 'message' => 'Erro ao preparar a consulta.'];
-        }
+            $stmt->bindParam(':marca', $marca, PDO::PARAM_STR);
+            $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
 
-        // Vincula os parâmetros corretamente
-        $stmt->bindValue(':marca', $marca, PDO::PARAM_STR);
-        $stmt->bindValue(':userId', $userId, PDO::PARAM_INT);
-
-        // Verifica se a execução foi bem-sucedida
-        if ($stmt->execute()) {
-            return ['success' => true, 'message' => 'Cadastro realizado com sucesso.'];
-        } else {
-            return ['success' => false, 'message' => 'Erro ao cadastrar marca: ' . $stmt->errorInfo()[2]];
+            if ($stmt->execute()) {
+                return ['success' => true, 'message' => 'Cadastro realizado com sucesso.'];
+            } else {
+                return ['success' => false, 'message' => 'Erro ao cadastrar marca.'];
+            }
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => 'Erro: ' . $e->getMessage()];
         }
     }
 }
 
-// Verifica se foi uma requisição POST
+// Processa requisições AJAX
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     session_start();
 
-    // Recupera a ação que o AJAX deseja executar
-    $action = $_POST['action'] ?? '';
-
-    // Conecta ao banco de dados
-    $db = conectarBanco(); // Certifique-se de que esta função retorna uma instância de conexão do banco de dados
-
-    // Cria a instância do controlador Ativo
+    $db = conectarBanco();
     $ativoController = new Ativo($db);
 
-    // Trata a ação que foi enviada pelo AJAX
-    switch ($action) {
-        case 'cadastrarMarca':
-            // Recupera os dados enviados pelo AJAX
-            $marca = trim($_POST['marca'] ?? '');
-            $userId = $_SESSION['id_user'] ?? null; // Obtém o ID do usuário da sessão
+    $action = $_POST['action'] ?? '';
+    $data = $_POST;
 
-            // Valida os dados recebidos
-            if (empty($marca) || !$userId) {
-                echo json_encode(['success' => false, 'message' => 'Dados inválidos.']);
-                exit();
-            }
+    $response = ['success' => false, 'message' => 'Ação não reconhecida.'];
 
-            // Chama a função cadastrarMarca na classe Ativo
-            $response = $ativoController->cadastrarMarca($marca, $userId);
-
-            // Retorna a resposta para o AJAX
-            echo json_encode($response);
-            break;
-
-        default:
-            // Se a ação não for reconhecida, retorna erro
-            echo json_encode(['success' => false, 'message' => 'Ação não reconhecida.']);
-            break;
+    if (method_exists($ativoController, $action)) {
+        $response = $ativoController->$action($data);
     }
+
+    echo json_encode($response);
 }
-
-
-
-// // Exemplo de uso do controlador
-// if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-//     session_start();
-
-//     $marca = $_POST['marca'] ?? '';
-//     $userId = $_SESSION['id_user'] ?? null;
-
-//     if (empty($marca) || !$userId) {
-//         echo json_encode(['success' => false, 'message' => 'Dados inválidos']);
-//         exit();
-//     }
-
-//     $ativoController = new AtivoController($db);
-//     $response = $ativoController->cadastrarMarca($marca, $userId);
-
-//     echo json_encode($response);
-// }
