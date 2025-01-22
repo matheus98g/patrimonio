@@ -93,13 +93,15 @@ $ativos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <td>
                                     <div class="form-check form-switch">
                                         <input
-                                            class="form-check-input"
+                                            class="form-check-input btn-alterar-status"
                                             type="checkbox"
                                             id="switchStatus-<?= $ativo['idAtivo']; ?>"
                                             data-id="<?= $ativo['idAtivo']; ?>"
+                                            data-status="<?= $ativo['statusAtivo']; ?>"
                                             <?= $ativo['statusAtivo'] ? 'checked' : ''; ?>>
                                     </div>
                                 </td>
+
                                 <td>
                                     <button
                                         class="btn btn-sm btn-warning"
@@ -154,39 +156,6 @@ $ativos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
-    <script>
-        // Preencher modal de edição
-        $(document).on('click', '[data-bs-target="#editAtivoModal"]', function() {
-            const button = $(this);
-            $('#modal-id').val(button.data('id'));
-            $('#modal-descricao').val(button.data('descricao'));
-            $('#modal-quantidade').val(button.data('quantidade'));
-            $('#modal-observacao').val(button.data('observacao'));
-        });
-
-        // Confirmação e atualização do status
-        $(document).on('change', '.form-check-input', function() {
-            const checkbox = $(this);
-            const idAtivo = checkbox.data('id');
-            const newStatus = checkbox.is(':checked') ? 1 : 0;
-
-            $.ajax({
-                url: '../controller/ativoController.php',
-                type: 'POST',
-                data: {
-                    idAtivo,
-                    statusAtivo: newStatus
-                },
-                success: function() {
-                    alert('Status atualizado com sucesso.');
-                },
-                error: function() {
-                    alert('Erro ao atualizar o status.');
-                    checkbox.prop('checked', !newStatus);
-                }
-            });
-        });
-    </script>
 </body>
 
 </html>

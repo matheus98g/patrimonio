@@ -1,124 +1,104 @@
 $(document).ready(function () {
-    // Captura o clique no botão de cadastrar ativo
+    // Função para exibir mensagens ao usuário
+    function exibirMensagem(tipo, mensagem) {
+        alert(mensagem); // Substitua por um componente de notificação, se desejar
+    }
+
+    // Cadastro de ativo
     $("#cadastrar_ativo").click(function () {
-        // Pegando os valores dos campos
         let descricao_ativo = $("#descricao").val();
         let marca = $("#marca").val();
         let tipo = $("#tipo").val();
         let quantidade = $("#quantidade").val();
         let observacao = $("#obs").val();
 
-        // Exibe um alerta caso algum campo obrigatório esteja vazio
         if (!descricao_ativo || !marca || !tipo || !quantidade) {
-            alert("Por favor, preencha todos os campos obrigatórios.");
+            exibirMensagem('erro', "Preencha todos os campos obrigatórios.");
             return;
         }
 
-        // Adicionando log para garantir que os dados estão sendo capturados corretamente
-        console.log("Dados para envio:");
-        console.log({
-            descricao_ativo: descricao_ativo,
-            marca: marca,
-            tipo: tipo,
-            quantidade: quantidade,
-            observacao: observacao
-        });
-
-        // Envia a requisição AJAX para o controlador
         $.ajax({
             type: "POST",
-            url: "../controller/ativoController.php", // Certifique-se de que a URL está correta
+            url: "../controller/ativoController.php",
             data: {
-                action: 'cadastrarAtivo',  // Ação que o controlador deve executar
-                ativo: descricao_ativo,   // Passa o valor da descrição do ativo
-                marca: marca,             // ID da marca selecionada
-                tipo: tipo,               // ID do tipo selecionado
-                quantidade: quantidade,   // Quantidade
-                observacao: observacao    // Observação (opcional)
+                action: 'cadastrarAtivo',
+                ativo: descricao_ativo,
+                marca: marca,
+                tipo: tipo,
+                quantidade: quantidade,
+                observacao: observacao
             },
-            success: function (response) {
-                try {
-                    // Decodifica a resposta JSON
-                    let result = JSON.parse(response);  
-
-                    // Exibe a mensagem de sucesso ou erro retornada pelo controlador
-                    alert(result.message);
-
-                    // Se o cadastro for bem-sucedido, recarrega a página
-                    if (result.success) {
-                        location.reload();
-                    }
-                } catch (e) {
-                    // Erro ao processar a resposta do servidor
-                    alert("Erro inesperado ao processar a resposta do servidor.");
-                    console.error(e);
-                }
+            beforeSend: function () {
+                $("#cadastrar_ativo").prop('disabled', true);
             },
-            error: function (xhr, status, error) {
-                // Log de erro para ajudar a identificar a causa do problema
-                console.error("Erro AJAX:", status, error);
-                alert("Erro ao enviar a solicitação. Verifique sua conexão e tente novamente.");
-            }
-        });
-    });
-});
-
-
-    // Abrir modal para edição
-    $(document).on('click', '.editAtivo', function () {
-        const id = $(this).data('id');
-        const descricao = $(this).data('descricao');
-        const quantidade = $(this).data('quantidade');
-        const observacao = $(this).data('observacao');
-
-        // Preencher os campos do modal
-        $('#idAtivo').val(id);
-        $('#descricaoAtivo').val(descricao);
-        $('#qtdAtivo').val(quantidade);
-        $('#obsAtivo').val(observacao);
-
-        // Alterar o título do modal
-        $('#exampleModalLabel').text('Editar Ativo');
-
-        // Mostrar o modal
-        $('#exampleModal').modal('show');
-    });
-
-    // Resetar o formulário ao fechar o modal
-    $('#exampleModal').on('hidden.bs.modal', function () {
-        $('#formAtivo')[0].reset();
-        $('#idAtivo').val('');
-        $('#exampleModalLabel').text('Cadastrar Ativo');
-    });
-
-    // Submeter o formulário via AJAX
-    $('#formAtivo').on('submit', function (e) {
-        e.preventDefault();
-
-        const formData = $(this).serialize();
-
-        $.ajax({
-            url: '../controller/editAtivoController.php',
-            type: 'POST',
-            data: formData,
             success: function (response) {
                 try {
                     let result = JSON.parse(response);
-
-                    if (result.success) {
-                        alert(result.message);
-                        location.reload(); // Recarregar a página para atualizar a tabela
-                    } else {
-                        alert('Erro ao salvar os dados: ' + result.error);
-                    }
+                    exibirMensagem(result.success ? 'sucesso' : 'erro', result.message);
+                    if (result.success) location.reload();
                 } catch (e) {
-                    alert("Erro inesperado ao processar a resposta do servidor.");
+                    exibirMensagem('erro', "Erro ao processar a resposta do servidor.");
                     console.error(e);
                 }
             },
             error: function () {
-                alert('Erro na comunicação com o servidor.');
+                exibirMensagem('erro', "Erro ao enviar a solicitação.");
+            },
+            complete: function () {
+                $("#cadastrar_ativo").prop('disabled', false);
             }
         });
     });
 
+    $(document).on('change', '.btn-alterar-status', function () {
+    // Obter os atributos do switch
+    let idAtivo = $(this).data('id');
+    let statusAtual = $(this).data('status');
+    let novoStatus = this.checked ? 1 : 0; // Determina o novo status com base no estado do switch
+
+    console.log('Dados enviados:', {
+        idAtivo: idAtivo,
+        statusAtual: statusAtual,
+        novoStatus: novoStatus
+    });
+
+    // Enviar requisição AJAX para atualizar o status
+    $.ajax({
+        url: '../controller/ativoController.php',
+        type: 'POST',
+        data: {
+            action: 'atualizarStatusAtivo',
+            idAtivo: idAtivo,
+            statusAtivo: novoStatus
+        },
+        success: function (response) {
+            try {
+                let result = JSON.parse(response);
+                console.log('Resposta do servidor:', result);
+
+                if (result.success) {
+                    alert('Status atualizado com sucesso!');
+                } else {
+                    alert('Erro: ' + result.message);
+                }
+            } catch (e) {
+                alert('Erro ao processar a resposta do servidor.');
+                console.error(e);
+            }
+        },
+        error: function (xhr, status, error) {
+            alert('Erro ao conectar ao servidor.');
+            console.error("Erro AJAX:", status, error);
+        }
+    });
+});
+
+     // Preencher modal de edição
+        $(document).on('click', '[data-bs-target="#editAtivoModal"]', function() {
+            const button = $(this);
+            $('#modal-id').val(button.data('id'));
+            $('#modal-descricao').val(button.data('descricao'));
+            $('#modal-quantidade').val(button.data('quantidade'));
+            $('#modal-observacao').val(button.data('observacao'));
+        });
+});
