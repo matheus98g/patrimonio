@@ -144,6 +144,68 @@ class Ativo
         }
     }
 
+    public function atualizarStatusMarca($data)
+    {
+        $idMarca = intval($data['idMarca'] ?? 0);
+        $statusMarca = isset($data['statusMarca']) ? ($data['statusMarca'] === '1' ? '1' : '0') : null;
+        $userId = $_SESSION['id_user'] ?? null;
+
+        // Verifica se os dados necessários estão presentes
+        if (!$idMarca || !isset($statusMarca) || !$userId) {
+            return ['success' => false, 'message' => 'Dados inválidos.'];
+        }
+
+        try {
+            // Atualiza o status da marca no banco de dados
+            $query = "UPDATE marca SET statusMarca = :statusMarca, idUsuario = :userId, dataAlteracao = NOW() WHERE idMarca = :idMarca";
+            $stmt = $this->db->prepare($query);
+
+            $stmt->bindParam(':statusMarca', $statusMarca, PDO::PARAM_STR);
+            $stmt->bindParam(':idMarca', $idMarca, PDO::PARAM_INT);
+            $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+
+            if ($stmt->execute()) {
+                return ['success' => true, 'message' => 'Status da marca atualizado com sucesso.'];
+            } else {
+                return ['success' => false, 'message' => 'Erro ao atualizar o status da marca.'];
+            }
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => 'Erro: ' . $e->getMessage()];
+        }
+    }
+
+    public function editarMarca($data)
+    {
+        $idMarca = intval($data['idMarca'] ?? 0);
+        $descricaoMarca = trim($data['descricaoMarca'] ?? '');
+        $userId = $_SESSION['id_user'] ?? null;
+
+        // Verifica se os dados necessários estão presentes
+        if (!$idMarca || empty($descricaoMarca) || !$userId) {
+            return ['success' => false, 'message' => 'Dados inválidos.'];
+        }
+
+        try {
+            // Atualiza a descrição da marca no banco de dados
+            $query = "UPDATE marca SET descricaoMarca = :descricaoMarca, idUsuario = :userId, dataAlteracao = NOW() WHERE idMarca = :idMarca";
+            $stmt = $this->db->prepare($query);
+
+            $stmt->bindParam(':descricaoMarca', $descricaoMarca, PDO::PARAM_STR);
+            $stmt->bindParam(':idMarca', $idMarca, PDO::PARAM_INT);
+            $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+
+            if ($stmt->execute()) {
+                return ['success' => true, 'message' => 'Marca atualizada com sucesso.'];
+            } else {
+                return ['success' => false, 'message' => 'Erro ao atualizar a marca.'];
+            }
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => 'Erro: ' . $e->getMessage()];
+        }
+    }
+
+
+
     public function cadastrarTipo($data)
     {
         // Validação de dados
