@@ -31,7 +31,7 @@ $sql = "
         (SELECT descricaoTipo FROM tipo WHERE tipo.idTipo = ativo.idTipo) AS tipo, 
         dataCadastro, 
         (SELECT nomeUsuario FROM usuario WHERE usuario.idUsuario = ativo.idUsuario) AS usuario
-    FROM ativo;
+    FROM ativo ORDER BY descricaoAtivo ASC;
 ";
 $stmt = $db->prepare($sql);
 $stmt->execute();

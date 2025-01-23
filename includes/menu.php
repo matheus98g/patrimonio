@@ -29,10 +29,11 @@
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                         <li><a class="dropdown-item" href="../view/ativos.php">Listar Ativos</a></li>
                         <li><a class="dropdown-item" href="../view/marcas.php">Marcas</a></li>
+                        <li><a class="dropdown-item" href="../view/tipos.php">Tipos</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="../view/movements.php">Movimentações</a>
+                    <a class="nav-link" href="../view/movimentacoes.php">Movimentações</a>
                 </li>
 
             </ul>

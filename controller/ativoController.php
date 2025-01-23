@@ -143,6 +143,69 @@ class Ativo
             return ['success' => false, 'message' => 'Erro: ' . $e->getMessage()];
         }
     }
+
+    public function cadastrarTipo($data)
+    {
+        // Validação de dados
+        $descricaoTipo = trim($data['descricaoTipo'] ?? '');
+        $userId = $_SESSION['id_user'] ?? null;
+
+        if (empty($descricaoTipo) || !$userId) {
+            return ['success' => false, 'message' => 'Dados inválidos. Por favor, preencha todos os campos corretamente.'];
+        }
+
+        try {
+            // Query preparada para evitar SQL Injection
+            $query = "INSERT INTO tipo (descricaoTipo, statusTipo, dataCadastro, idUsuario)
+                  VALUES (:descricaoTipo, 'S', NOW(), :userId)";
+
+            $stmt = $this->db->prepare($query);
+
+            // Bind dos parâmetros
+            $stmt->bindParam(':descricaoTipo', $descricaoTipo, PDO::PARAM_STR);
+            $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+
+            // Executa a query
+            if ($stmt->execute()) {
+                return ['success' => true, 'message' => 'Tipo cadastrado com sucesso!'];
+            } else {
+                return ['success' => false, 'message' => 'Erro ao cadastrar tipo.'];
+            }
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => 'Erro: ' . $e->getMessage()];
+        }
+    }
+
+    public function atualizarStatusTipo($data)
+    {
+        // Obtendo o ID do tipo e o status enviado via POST
+        $idTipo = intval($data['idTipo'] ?? 0);
+        $statusTipo = $data['statusTipo'] === '1' ? '1' : '0';
+
+        // Verifica se os parâmetros necessários estão presentes
+        if (!$idTipo || !isset($statusTipo)) {
+            return ['success' => false, 'message' => 'Parâmetros inválidos.'];
+        }
+
+        try {
+            // Query para atualizar o status do tipo
+            $query = "UPDATE tipo SET statusTipo = :statusTipo, dataAlteracao = NOW() WHERE idTipo = :idTipo";
+            $stmt = $this->db->prepare($query);
+
+            // Bind dos parâmetros
+            $stmt->bindParam(':statusTipo', $statusTipo, PDO::PARAM_STR);
+            $stmt->bindParam(':idTipo', $idTipo, PDO::PARAM_INT);
+
+            // Executa a query
+            if ($stmt->execute()) {
+                return ['success' => true, 'message' => 'Status atualizado com sucesso.'];
+            } else {
+                return ['success' => false, 'message' => 'Erro ao atualizar o status.'];
+            }
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => 'Erro: ' . $e->getMessage()];
+        }
+    }
 }
 
 // Processa requisições AJAX
