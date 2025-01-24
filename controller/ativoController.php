@@ -1,7 +1,7 @@
 <?php
 
 require_once('../model/db.php');
-require_once('sessionController.php');
+require_once('authController.php');
 
 class Ativo
 {
@@ -267,6 +267,32 @@ class Ativo
         } catch (PDOException $e) {
             return ['success' => false, 'message' => 'Erro: ' . $e->getMessage()];
         }
+    }
+
+    // Arquivo: model/movimentacaoModel.php
+
+    function getMovimentacoes($db)
+    {
+        $sql = "SELECT 
+                m.idMovimentacao,
+                m.localOrigem,
+                m.localDestino,
+                m.quantidadeUso,
+                m.quantidadeMov,
+                m.tipoMovimentacao,
+                m.statusMov,
+                m.descricaoMovimentacao,
+                m.dataMovimentacao,
+                u.nomeUsuario,
+                a.descricaoAtivo
+            FROM movimentacao m
+            JOIN usuario u ON m.idUsuario = u.idUsuario
+            JOIN ativo a ON m.idAtivo = a.idAtivo
+            ORDER BY m.dataMovimentacao DESC";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 
