@@ -1,71 +1,138 @@
 <?php
-include('../controller/sessionController.php');
-include('../includes/head.php'); //scripts e html principal
-include_once('../controller/getDataController.php');
+// Incluindo arquivos necessários
+include_once('../controller/db_helper.php');
+require_once('../controller/sessionController.php');
+require_once('../model/db.php');
 
-// Obter todos os usuários
-$data = get_data($db, 'usuario');
+// Iniciando a sessão
+session_start();
+
+// Conectando ao banco de dados
+$db = conectarBanco();  // Inicializa a conexão com o banco de dados
+
+// Criando instância de autenticação e verificando sessão
+$auth = new Auth($db);
+$auth->checkSession();
+
+// Consultando os usuários
+$sql = "SELECT idUsuario, nomeUsuario, emailUsuario, turmaUsuario, statusUsuario, dataCadastro FROM usuario ORDER BY nomeUsuario ASC";
+$stmt = $db->prepare($sql);
+$stmt->execute();
+$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
+<!doctype html>
+<html lang="pt-br">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bootstrap demo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../bootstrap/js/bootstrap.bundle.min.js"></script>
+    <title>Gestão de Usuários</title>
 </head>
 
-<body>
-    <?php
+<script src="../js/usuarios.js"></script>
 
-    include('../includes/menu.php');
-    ?>
+<body>
+
+    <?php require_once('../includes/menu.php'); ?>
 
     <div class="container mt-4">
         <h2 class="text-center">Lista de Usuários</h2>
-        <table class="table table-hover">
-            <thead class="table-light">
-                <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">Usuário</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Turma</th>
-                    <th scope="col">Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                foreach ($data as $user) {
-                ?>
+
+        <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#cadastrarUsuario">
+            Cadastrar Usuário
+        </button>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
                     <tr>
-                        <td><?php echo $user['idUsuario']; ?></td>
-                        <td><?php echo $user['nomeUsuario']; ?></td>
-                        <td><?php echo $user['emailUsuario']; ?></td>
-                        <td><?php echo $user['turmaUsuario']; ?></td>
-                        <td>
-                            <!-- Botão para acionar o modal -->
-                            <button
-                                class="btn btn-sm btn-primary"
-                                data-bs-toggle="modal"
-                                data-bs-target="#editUserModal"
-                                data-id="<?php echo $user['idUsuario']; ?>"
-                                data-nome="<?php echo htmlspecialchars($user['nomeUsuario']); ?>"
-                                data-email="<?php echo htmlspecialchars($user['emailUsuario']); ?>"
-                                data-turma="<?php echo htmlspecialchars($user['turmaUsuario']); ?>">
-                                Editar
-                            </button>
-                        </td>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Turma</th>
+                        <th>Data de Cadastro</th>
+                        <th>Status</th>
+                        <th>Ações</th>
                     </tr>
-                <?php
-                }
-                ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php if (!empty($users)) : ?>
+                        <?php foreach ($users as $user) : ?>
+                            <tr>
+                                <td><?= htmlspecialchars($user['idUsuario']) ?></td>
+                                <td><?= htmlspecialchars($user['nomeUsuario']) ?></td>
+                                <td><?= htmlspecialchars($user['emailUsuario']) ?></td>
+                                <td><?= htmlspecialchars($user['turmaUsuario']) ?></td>
+                                <td><?= htmlspecialchars($user['dataCadastro']) ?></td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input
+                                            class="form-check-input btn-alterar-status"
+                                            type="checkbox"
+                                            id="status-switch-<?= $user['idUsuario']; ?>"
+                                            data-id="<?= $user['idUsuario']; ?>"
+                                            data-status="<?= $user['statusUsuario']; ?>"
+                                            <?= $user['statusUsuario'] === 1 ? 'checked' : ''; ?>>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button
+                                        class="btn btn-sm btn-warning"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editUserModal"
+                                        data-id="<?= $user['idUsuario']; ?>"
+                                        data-nome="<?= htmlspecialchars($user['nomeUsuario']); ?>"
+                                        data-email="<?= htmlspecialchars($user['emailUsuario']); ?>"
+                                        data-turma="<?= htmlspecialchars($user['turmaUsuario']); ?>">
+                                        Editar
+                                    </button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <tr>
+                            <td colspan="7" class="text-center">Nenhum usuário encontrado.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- Modal para edição -->
+    <!-- Modal para Adicionar Usuário -->
+    <div class="modal fade" id="cadastrarUsuario" tabindex="-1" aria-labelledby="cadastrarUsuarioLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cadastrarUsuarioLabel">Cadastrar Usuário</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="../controller/userController.php" method="POST">
+                        <div class="mb-3">
+                            <label for="nomeUsuario" class="form-label">Nome:</label>
+                            <input type="text" id="nomeUsuario" name="nome" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="emailUsuario" class="form-label">E-mail:</label>
+                            <input type="email" id="emailUsuario" name="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="turmaUsuario" class="form-label">Turma:</label>
+                            <input type="text" id="turmaUsuario" name="turma" class="form-control" required>
+                        </div>
+                        <button type="button" class="btn btn-primary w-100">Cadastrar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Usuário -->
     <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -74,7 +141,7 @@ $data = get_data($db, 'usuario');
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form action="../controller/editUserController.php" method="POST">
+                    <form action="../controller/userController.php" method="POST">
                         <input type="hidden" id="modal-id" name="id">
                         <div class="mb-3">
                             <label for="modal-nome" class="form-label">Nome:</label>
@@ -88,30 +155,24 @@ $data = get_data($db, 'usuario');
                             <label for="modal-turma" class="form-label">Turma:</label>
                             <input type="text" id="modal-turma" name="turma" class="form-control" required>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Atualizar</button>
+                        <button type="button" class="btn btn-primary w-100" id="editarUsuario">Salvar Alterações</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Popula o modal com os dados do usuário ao clicar em "Editar"
-        const editUserModal = document.getElementById('editUserModal');
-        editUserModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget; // Botão que acionou o modal
-            const id = button.getAttribute('data-id');
-            const nome = button.getAttribute('data-nome');
-            const email = button.getAttribute('data-email');
-            const turma = button.getAttribute('data-turma');
-
-            // Preenche os campos do modal
-            document.getElementById('modal-id').value = id;
-            document.getElementById('modal-nome').value = nome;
-            document.getElementById('modal-email').value = email;
-            document.getElementById('modal-turma').value = turma;
+        // Popula o modal de edição com os dados do usuário
+        document.getElementById('editUserModal').addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            document.getElementById('modal-id').value = button.getAttribute('data-id');
+            document.getElementById('modal-nome').value = button.getAttribute('data-nome');
+            document.getElementById('modal-email').value = button.getAttribute('data-email');
+            document.getElementById('modal-turma').value = button.getAttribute('data-turma');
         });
     </script>
+
 </body>
+
+</html>
