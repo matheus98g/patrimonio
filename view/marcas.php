@@ -1,19 +1,22 @@
 <?php
-include_once('../controller/db_helper.php'); // Incluindo o helper do banco
-require_once('../controller/sessionController.php');
+// Incluindo arquivos necessários
+include_once('../controller/db_helper.php');
+require_once('../controller/authController.php');
 require_once('../model/db.php');
 
-// Iniciando a sessão
-session_start();
+// Verifica se a sessão está iniciada, caso contrário, inicia a sessão
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Conectando ao banco de dados
-$db = conectarBanco(); // Inicializa a conexão com o banco de dados
+$db = conectarBanco();  // Inicializa a conexão com o banco de dados
 
-// Criando uma instância de Auth com a conexão do banco
+// Criando instância de autenticação
 $auth = new Auth($db);
 
-// Verifica se a sessão está ativa
-$auth->checkSession();
+// Verifica se o usuário está logado
+$auth->checkSession();  // Se não estiver logado, redireciona
 
 // Consultando as marcas
 $sql = "SELECT idMarca, descricaoMarca, statusMarca FROM marca ORDER BY descricaoMarca ASC";

@@ -1,33 +1,28 @@
 <?php
 // Incluindo arquivos necessários
 include_once('../controller/db_helper.php');
-require_once('../controller/sessionController.php');
+require_once('../controller/authController.php');
 require_once('../model/db.php');
 
-// Iniciando a sessão
-session_start();
+// Verifica se a sessão está iniciada, caso contrário, inicia a sessão
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Conectando ao banco de dados
-$db = conectarBanco();
+$db = conectarBanco();  // Inicializa a conexão com o banco de dados
 
-// Criando instância de autenticação e verificando sessão
+// Criando instância de autenticação
 $auth = new Auth($db);
-$auth->checkSession();
 
+// Verifica se o usuário está logado
+$auth->checkSession();  // Se não estiver logado, redireciona
 
+// Obtendo informações do usuário logado
+$usuarioLogado = $_SESSION['usuario']; // Dados do usuário armazenados na sessão
+
+require_once('../includes/head.php'); // Scripts e HTML principal
 ?>
-
-<!doctype html>
-<html lang="pt-br">
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="../bootstrap/js/bootstrap.bundle.min.js"></script>
-    <title>Movimentações</title>
-</head>
 
 <script src="../js/movimentacoes.js"></script>
 

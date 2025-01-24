@@ -1,18 +1,22 @@
 <?php
 // Incluindo arquivos necessários
 include_once('../controller/db_helper.php');
-require_once('../controller/sessionController.php');
+require_once('../controller/authController.php');
 require_once('../model/db.php');
 
-// Iniciando a sessão
-session_start();
+// Verifica se a sessão está iniciada, caso contrário, inicia a sessão
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Conectando ao banco de dados
-$db = conectarBanco();
+$db = conectarBanco();  // Inicializa a conexão com o banco de dados
 
-// Criando instância de autenticação e verificando sessão
+// Criando instância de autenticação
 $auth = new Auth($db);
-$auth->checkSession();
+
+// Verifica se o usuário está logado
+$auth->checkSession();  // Se não estiver logado, redireciona
 
 // Consultando os tipos
 $sql = "SELECT idTipo, descricaoTipo, dataCadastro, statusTipo FROM tipo ORDER BY descricaoTipo ASC";

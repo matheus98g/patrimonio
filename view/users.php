@@ -1,24 +1,36 @@
 <?php
 // Incluindo arquivos necessários
 include_once('../controller/db_helper.php');
-require_once('../controller/sessionController.php');
+require_once('../controller/authController.php');
 require_once('../model/db.php');
 
-// Iniciando a sessão
-session_start();
+// Verifica se a sessão está iniciada, caso contrário, inicia a sessão
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Conectando ao banco de dados
 $db = conectarBanco();  // Inicializa a conexão com o banco de dados
 
-// Criando instância de autenticação e verificando sessão
+// Criando instância de autenticação
 $auth = new Auth($db);
-$auth->checkSession();
+
+// Verifica se o usuário está logado
+$auth->checkSession();  // Se não estiver logado, redireciona
+
+$auth->checkAdmin();
+
+// Verifica se o usuário tem permissão de administrador
+// $auth->checkAdmin();  // Se não for admin, redireciona
+
 
 // Consultando os usuários
 $sql = "SELECT idUsuario, nomeUsuario, emailUsuario, turmaUsuario, statusUsuario, dataCadastro FROM usuario ORDER BY nomeUsuario ASC";
 $stmt = $db->prepare($sql);
 $stmt->execute();
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
 ?>
 
 <!doctype html>

@@ -1,3 +1,8 @@
+<?php
+// Verifica se o usuário logado é administrador
+$usuarioLogado = $_SESSION['usuario'];  // Aqui, já estamos assumindo que a sessão tem 'usuario' com as informações necessárias
+?>
+
 <div class="container">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand m-4" href="../view/dashboard.php">
@@ -7,21 +12,22 @@
             <span class="navbar-toggler-icon"></span>
         </button>
 
-
         <div class="collapse navbar-collapse m-4 justify-content-center" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
                     <a class="nav-link" href="../view/dashboard.php">Inicio</a>
                 </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Usuários
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                        <li><a class="dropdown-item" href="../view/users.php">Listar todos</a></li>
-                        <li><a class="dropdown-item" href="../view/register.php">Registrar</a></li>
-                    </ul>
-                </li>
+                <?php if ($usuarioLogado['isAdmin'] == 1) : ?>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Usuários
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            <li><a class="dropdown-item" href="../view/users.php">Listar todos</a></li>
+                            <li><a class="dropdown-item" href="../view/register.php">Cadastrar Usuário</a></li>
+                        </ul>
+                    </li>
+                <?php endif; ?>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Ativos
@@ -35,7 +41,6 @@
                 <li class="nav-item">
                     <a class="nav-link" href="../view/movimentacoes.php">Movimentações</a>
                 </li>
-
             </ul>
             <div id="logout" class="m-4">
                 <form method="post" action="logout.php">
@@ -43,6 +48,5 @@
                 </form>
             </div>
         </div>
-
     </nav>
 </div>
