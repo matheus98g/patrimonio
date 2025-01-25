@@ -29,6 +29,7 @@ $movimentacoes = $ativos->getMovimentacoes($db);
 
 $getAtivos = $ativos->getAtivosSearch($db);
 
+
 ?>
 
 <!doctype html>
