@@ -175,7 +175,7 @@ $getAtivos = $ativos->getAtivosSearch($db);
                 $('#ativoList').empty();
 
                 // Se o termo tiver mais de 2 caracteres
-                if (searchTerm.length > 2) {
+                if (searchTerm.length > 0) {
                     // Filtra os ativos com base no termo de pesquisa
                     const filteredAtivos = ativos.filter(function(ativo) {
                         return ativo.descricaoAtivo.toLowerCase().includes(searchTerm);
@@ -201,6 +201,64 @@ $getAtivos = $ativos->getAtivosSearch($db);
             });
         });
     </script>
+
+    <style>
+        /* Estilização do dropdown */
+        #ativoList {
+            max-height: 300px;
+            /* Limita a altura para não ocupar toda a tela */
+            overflow-y: auto;
+            /* Adiciona rolagem quando necessário */
+            border: 1px solid #ccc;
+            /* Borda suave para o contorno */
+            border-radius: .375rem;
+            /* Bordas arredondadas */
+            background-color: #fff;
+            /* Cor de fundo branca */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            /* Sombra suave */
+            position: absolute;
+            /* Coloca o dropdown em posição absoluta */
+            z-index: 9999;
+            /* Garante que o dropdown fique acima dos outros elementos */
+            width: 100%;
+            /* Largura igual à do campo de busca */
+            display: none;
+            /* Inicialmente escondido */
+        }
+
+        /* Estilo dos itens da lista */
+        #ativoList .list-group-item {
+            cursor: pointer;
+            /* Indicador de que é clicável */
+            transition: background-color 0.3s ease;
+            /* Transição suave de cor */
+        }
+
+        /* Efeito de hover */
+        #ativoList .list-group-item:hover {
+            background-color: rgb(190, 190, 190);
+            /* Cor de fundo ao passar o mouse */
+        }
+
+        /* Efeito de item ativo (selecionado) */
+        #ativoList .list-group-item.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+        /* Estilo para o campo de busca */
+        #ativoSearch {
+            border-radius: .375rem;
+            /* Bordas arredondadas */
+            padding: .5rem;
+            /* Espaçamento interno */
+            position: relative;
+            /* Necessário para o posicionamento absoluto do dropdown */
+        }
+    </style>
+
+
 
 </body>
 
