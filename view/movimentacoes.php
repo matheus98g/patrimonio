@@ -27,6 +27,8 @@ $ativos = new Ativo($db);
 
 $movimentacoes = $ativos->getMovimentacoes($db);
 
+$getAtivos = $ativos->getAtivosSearch($db);
+
 ?>
 
 <!doctype html>
@@ -64,6 +66,7 @@ $movimentacoes = $ativos->getMovimentacoes($db);
                         <th>Quantidade Uso</th>
                         <th>Quantidade Mov.</th>
                         <th>Tipo</th>
+                        <th>Descrição</th>
                         <th>Status</th>
                         <th>Data</th>
                         <th>Ações</th>
@@ -75,12 +78,13 @@ $movimentacoes = $ativos->getMovimentacoes($db);
                             <tr>
                                 <td><?= htmlspecialchars($mov['idMovimentacao']) ?></td>
                                 <td><?= htmlspecialchars($mov['nomeUsuario']) ?></td>
-                                <td><?= htmlspecialchars($mov['nomeAtivo']) ?></td>
+                                <td><?= htmlspecialchars($mov['descricaoAtivo']) ?></td>
                                 <td><?= htmlspecialchars($mov['localOrigem']) ?></td>
                                 <td><?= htmlspecialchars($mov['localDestino']) ?></td>
                                 <td><?= htmlspecialchars($mov['quantidadeUso']) ?></td>
                                 <td><?= htmlspecialchars($mov['quantidadeMov']) ?></td>
                                 <td><?= htmlspecialchars($mov['tipoMovimentacao']) ?></td>
+                                <td><?= htmlspecialchars($mov['descricaoMovimentacao']) ?></td>
                                 <td><?= htmlspecialchars($mov['statusMov']) ?></td>
                                 <td><?= htmlspecialchars($mov['dataMovimentacao']) ?></td>
                                 <td>
@@ -116,29 +120,86 @@ $movimentacoes = $ativos->getMovimentacoes($db);
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form action="../controller/movimentacaoController.php" method="POST">
+                    <form action="../controller/ativoController.php" method="POST">
+                        <!-- Campo Ativo com Live Search -->
+                        <div class="mb-3">
+                            <label for="ativo" class="form-label">Ativo:</label>
+                            <input type="text" id="ativoSearch" name="ativo" class="form-control" required placeholder="Digite para buscar ativos...">
+                            <div id="ativoList" class="list-group mt-2" style="display: none;"></div> <!-- Dropdown para resultados -->
+                        </div>
+
+                        <!-- Campo Local de Origem -->
                         <div class="mb-3">
                             <label for="localOrigem" class="form-label">Local de Origem:</label>
                             <input type="text" id="localOrigem" name="localOrigem" class="form-control" required>
                         </div>
+
+                        <!-- Campo Local de Destino -->
                         <div class="mb-3">
                             <label for="localDestino" class="form-label">Local de Destino:</label>
                             <input type="text" id="localDestino" name="localDestino" class="form-control" required>
                         </div>
+
+                        <!-- Campo Quantidade Movimentada -->
                         <div class="mb-3">
                             <label for="quantidadeMov" class="form-label">Quantidade Movimentada:</label>
                             <input type="number" id="quantidadeMov" name="quantidadeMov" class="form-control" required>
                         </div>
+
+                        <!-- Campo Tipo de Movimentação -->
                         <div class="mb-3">
                             <label for="tipoMovimentacao" class="form-label">Tipo de Movimentação:</label>
                             <input type="text" id="tipoMovimentacao" name="tipoMovimentacao" class="form-control" required>
                         </div>
+
                         <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+
+
+
+    <script>
+        // Passa os ativos do PHP para o JavaScript
+        var ativos = <?php echo json_encode($getAtivos); ?>;
+        console.log(ativos); // Adicione essa linha para depurar
+
+        $(document).ready(function() {
+            $('#ativoSearch').on('input', function() {
+                const searchTerm = $(this).val().toLowerCase();
+
+                // Limpa a lista de sugestões
+                $('#ativoList').empty();
+
+                // Se o termo tiver mais de 2 caracteres
+                if (searchTerm.length > 2) {
+                    // Filtra os ativos com base no termo de pesquisa
+                    const filteredAtivos = ativos.filter(function(ativo) {
+                        return ativo.descricaoAtivo.toLowerCase().includes(searchTerm);
+                    });
+
+                    // Exibe os resultados
+                    if (filteredAtivos.length > 0) {
+                        $('#ativoList').show();
+                        filteredAtivos.forEach(function(ativo) {
+                            const listItem = $('<a href="#" class="list-group-item list-group-item-action">' + ativo.descricaoAtivo + '</a>');
+                            listItem.on('click', function() {
+                                $('#ativoSearch').val(ativo.descricaoAtivo); // Preenche o campo com o nome do ativo
+                                $('#ativoList').hide(); // Esconde a lista após seleção
+                            });
+                            $('#ativoList').append(listItem);
+                        });
+                    } else {
+                        $('#ativoList').hide(); // Nenhum resultado encontrado
+                    }
+                } else {
+                    $('#ativoList').hide(); // Esconde a lista se o termo for muito curto
+                }
+            });
+        });
+    </script>
 
 </body>
 

@@ -19,6 +19,10 @@ $usuarioLogado = $_SESSION['usuario']; // Dados do usuÃ¡rio armazenados na sessÃ
 require_once('../includes/head.php'); // Scripts e HTML principal
 ?>
 
+<head>
+    <title>Dashboard</title>
+</head>
+
 <body>
     <?php include('../includes/menu.php'); ?>
 

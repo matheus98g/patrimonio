@@ -12,6 +12,32 @@ class Ativo
         $this->db = $db;
     }
 
+    // Função para listar os ativos, somente a descrição
+    public function getAtivosSearch()
+    {
+        try {
+            // SQL para buscar os ativos
+            $sql = "
+            SELECT 
+                idAtivo, 
+                descricaoAtivo
+            FROM ativo 
+            ORDER BY descricaoAtivo ASC;
+        ";
+
+            // Preparação e execução da query
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+
+            // Retorna os resultados como um array associativo
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            // Em caso de erro, retorna uma mensagem
+            return ['success' => false, 'message' => 'Erro: ' . $e->getMessage()];
+        }
+    }
+
+
     public function cadastrarAtivo($data)
     {
         // Validação de dados
@@ -293,6 +319,55 @@ class Ativo
         $stmt = $db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+
+
+    // Função para buscar ativos por termo
+    public function buscarAtivosPorTermo($term)
+    {
+        try {
+            // Query para buscar ativos com base no termo digitado
+            $query = "SELECT idAtivo, nomeAtivo FROM ativo WHERE nomeAtivo LIKE :term LIMIT 10";
+
+            // Prepara a query usando o PDO
+            $stmt = $this->db->prepare($query);
+
+            // Bind do parâmetro
+            $searchTerm = "%" . $term . "%";
+            $stmt->bindParam(':term', $searchTerm, PDO::PARAM_STR);
+
+            // Executa a query
+            $stmt->execute();
+
+            // Recupera os resultados
+            $ativos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Retorna os resultados
+            return $ativos;
+        } catch (PDOException $e) {
+            // Retorna o erro caso haja algum problema
+            return ['success' => false, 'message' => 'Erro: ' . $e->getMessage()];
+        }
+    }
+
+    // Método para tratar a requisição AJAX de busca
+    public function buscarAtivosAjax()
+    {
+        // Verifica se foi enviado o termo de busca via GET
+        if (isset($_GET['term'])) {
+            $term = $_GET['term'];
+
+            // Chama a função para buscar ativos
+            $ativos = $this->buscarAtivosPorTermo($term);
+
+            // Retorna os resultados como JSON
+            echo json_encode($ativos);
+        } else {
+            // Retorna uma resposta de erro caso o termo não seja informado
+            echo json_encode(['success' => false, 'message' => 'Termo de busca não informado.']);
+        }
     }
 }
 
